@@ -13,9 +13,14 @@ library LibBitmap {
         // It is better to set `isSet` to either 0 or 1, than zero vs non-zero.
         // Both cost the same amount of gas, but the former allows the returned value
         // to be reused without cleaning the upper bits.
-        uint256 b = (bitmap.map[index >> 8] >> (index & 0xff)) & 1;
         assembly {
-            isSet := b
+            mstore(0x00, shr(8, index))
+            mstore(0x20, bitmap.slot)
+            let storageSlot := keccak256(0x00, 0x40)
+            let shift := and(index, 0xff)
+            let storageValue := sload(storageSlot)
+
+            isSet := and(shr(shift, storageValue), 1)
         }
     }
 
